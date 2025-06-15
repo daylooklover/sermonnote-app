@@ -1,22 +1,23 @@
 {
-  "functions": {
-    "source": "functions",
-    "runtime": "nodejs18",
-    "codebase": "default",
-    "ignore": ["node_modules"],
-    "endpoints": {
-      "generateExamples": {
-        "platform": "gcfv1",
-        "region": "us-central1"
-      }
-    }
-  },
   "hosting": {
     "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      { "source": "/", "destination": "/index.html" },
+      { "source": "/quickmemo", "destination": "/quickmemo.html" },
+      { "source": "/case", "destination": "/illustration-sermon.html" },
+      { "source": "/custom", "destination": "/sermon_example.html" },
+      { "source": "/auth/login", "destination": "/auth/login.html" },
+      { "source": "/sermon_start", "destination": "/sermon_start.html" },
+      { "source": "**", "destination": "/index.html" }
     ]
+  },
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs18"
   }
 }

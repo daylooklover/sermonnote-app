@@ -11,7 +11,6 @@
       font-family: 'Nanum Gothic', sans-serif;
       color: #fff;
     }
-
     .header {
       position: absolute;
       top: 20px;
@@ -22,14 +21,12 @@
       box-shadow: 0 0 12px rgba(255, 235, 59, 0.2);
       cursor: pointer;
     }
-
     .header p {
       margin: 0;
       font-size: 0.95rem;
       line-height: 1.6;
       color: #ffffff;
     }
-
     .quickmemo {
       position: absolute;
       top: 20px;
@@ -40,13 +37,11 @@
       border-radius: 10px;
       box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
     }
-
     .quickmemo h3 {
       margin: 0 0 8px;
       font-size: 1rem;
       color: #ffeb3b;
     }
-
     .quickmemo textarea {
       width: 100%;
       height: 150px;
@@ -61,7 +56,6 @@
       line-height: 1.6;
       color: #222;
     }
-
     .mic-btn {
       margin-top: 8px;
       background: #ff5252;
@@ -73,7 +67,6 @@
       cursor: pointer;
       margin-right: 5px;
     }
-
     .title {
       margin-top: 140px;
       text-align: center;
@@ -81,7 +74,6 @@
       font-weight: bold;
       text-shadow: 0 0 15px #ffd54f;
     }
-
     .verse-box {
       margin: 40px auto;
       background: linear-gradient(to bottom, #fff 29px, #f0f0f0 30px),
@@ -99,14 +91,12 @@
       font-size: 1.3rem;
       line-height: 1.8;
     }
-
     .verse-box span {
       display: block;
       font-size: 1rem;
       color: #555;
       margin-top: 8px;
     }
-
     .start-button {
       display: block;
       margin: 50px auto;
@@ -120,7 +110,6 @@
       cursor: pointer;
       box-shadow: 0 6px 20px rgba(255, 235, 59, 0.5);
     }
-
     .start-button:hover {
       transform: translateY(-3px);
     }
@@ -128,12 +117,10 @@
 </head>
 <body>
 
-  <!-- 왼쪽 상단: 소개 -->
   <div class="header" onclick="location.href='guide.html'">
     <p>AI와 함께<br>하나님의 말씀을<br>더 가까이, 더 깊게 전하는<br>사역 플랫폼 - <b>말씀노트</b></p>
   </div>
 
-  <!-- 오른쪽 상단: 퀵메모 -->
   <div class="quickmemo">
     <h3>📝 퀵메모 (최대 5줄)</h3>
     <textarea id="quickMemo" placeholder="메모를 기록해보세요..."></textarea>
@@ -141,14 +128,11 @@
     <button class="mic-btn" onclick="saveMemo()">💾 저장하기</button>
   </div>
 
-  <!-- 중앙 타이틀 -->
   <div class="title">SermonNote</div>
 
-  <!-- 랜덤 말씀 -->
   <div class="verse-box" id="verseBox">말씀이 나타나는 중입니다...</div>
 
-  <!-- 시작 버튼 -->
-  <button class="start-button" onclick="location.href='auth/login.html'">Start Now</button>
+  <button class="start-button" onclick="location.href='/quickmemo'">Start Now</button>
 
   <script>
     const verses = [

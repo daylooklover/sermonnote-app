@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>📝 AI 설교문 테스트</title>
+  <style>
+    body { font-family: sans-serif; padding: 30px; background: #f6f8fa; }
+    textarea, button { width: 100%; margin-top: 10px; font-size: 1rem; }
+    textarea { height: 120px; padding: 10px; }
+    #result { white-space: pre-wrap; background: #fff; padding: 10px; border: 1px solid #ccc; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h2>📖 가장 쉬운 AI 설교문 생성기</h2>
+  <label>성경 구절 또는 주제 입력:</label>
+  <textarea id="prompt" placeholder="예: 요한복음 3장 16절로 설교문 작성해줘"></textarea>
+  <button onclick="generateSermon()">AI 설교 생성</button>
+
+  <div id="result">✍️ 생성된 설교문이 여기에 나타납니다...</div>
+
+  <script>
+    async function generateSermon() {
+      const prompt = document.getElementById('prompt').value;
+      const resultDiv = document.getElementById('result');
+      resultDiv.textContent = '⏳ 생성 중입니다...';
+
+      try {
+        const res = await fetch("https://sermonnote-app.vercel.app/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt })
+        });
+
+        if (!res.ok) throw new Error("서버 응답 오류: " + res.status);
+        const data = await res.json();
+        resultDiv.textContent = data.result || "AI 응답이 비어 있어요.";
+      } catch (err) {
+        resultDiv.textContent = "❌ 오류 발생: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>

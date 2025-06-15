@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>🔥 Firebase Functions AI 테스트</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Nanum Gothic', sans-serif;
+      padding: 40px;
+      background: #f4f4f4;
+      max-width: 800px;
+      margin: auto;
+    }
+    h1 { color: #333; }
+    textarea, input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 16px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #ffd600;
+      color: #000;
+      font-weight: bold;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    pre {
+      background: #eee;
+      padding: 16px;
+      white-space: pre-wrap;
+      margin-top: 20px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔥 Firebase Functions AI 테스트</h1>
+
+  <label>프롬프트:</label>
+  <textarea id="prompt">믿음에 대한 짧은 예화를 추천해줘</textarea>
+
+  <label>역할 (Role):</label>
+  <input type="text" id="role" value="기독교 예화 도우미" />
+
+  <button id="callApiBtn">🚀 API 호출하기</button>
+
+  <pre id="result">결과가 여기에 표시됩니다...</pre>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.getElementById("callApiBtn").addEventListener("click", async function () {
+        const prompt = document.getElementById("prompt").value.trim();
+        const role = document.getElementById("role").value.trim();
+        const resultBox = document.getElementById("result");
+
+        // ✅ 빈 값 방지
+        if (!prompt || !role) {
+          resultBox.textContent = "⚠️ 프롬프트와 역할을 모두 입력해 주세요.";
+          return;
+        }
+
+        resultBox.textContent = "🔄 호출 중입니다...";
+
+        try {
+          const res = await fetch("https://us-central1-sermonnote-live.cloudfunctions.net/api", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt, role })
+          });
+
+          const data = await res.json();
+
+          if (data.result) {
+            resultBox.textContent = "✅ 응답 결과:\n" + data.result;
+          } else {
+            resultBox.textContent = "❌ 오류:\n" + (data.error || "응답이 비어 있습니다.");
+          }
+        } catch (err) {
+          resultBox.textContent = "❌ 네트워크 오류:\n" + (err.message || err);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

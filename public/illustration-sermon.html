@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>예화 중심 설교 작성기</title>
+  <style>
+    body {
+      font-family: 'Nanum Gothic', sans-serif;
+      background: linear-gradient(135deg, #1c1c2b, #28313b);
+      margin: 0;
+      color: #333;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 10px;
+    }
+    .column {
+      flex: 1;
+      min-width: 300px;
+      padding: 15px;
+    }
+    textarea {
+      width: 100%;
+      min-height: 300px;
+      padding: 16px;
+      font-size: 1.1rem;
+      line-height: 30px;
+      background: linear-gradient(to bottom, #fff 29px, #f0f0f0 30px),
+                  url('https://www.transparenttextures.com/patterns/lined-paper.png');
+      background-size: 100% 30px;
+      background-repeat: repeat-y;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    .button, .mic-button {
+      margin-top: 10px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+    .button { background: #ffeb3b; color: #222; }
+    .mic-button { background: red; color: white; }
+    .suggestion-box {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #555;
+      background: #f5f5f5;
+      padding: 8px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+    }
+    .footer {
+      padding: 20px;
+      text-align: center;
+      background: #1c1c2b;
+      color: white;
+    }
+    #hymnSuggestions {
+      margin: 20px auto;
+      padding: 16px;
+      max-width: 800px;
+      background: white;
+      color: black;
+      border-radius: 12px;
+    }
+    @media (max-width: 768px) {
+      .container { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="column">
+      <h2>예화 / 사건</h2>
+      <input type="text" id="customIllustrationTopic" placeholder="예화 주제를 입력하세요" style="width:100%;padding:8px;">
+      <button class="button" onclick="generateIllustration()">AI 예화 추천</button>
+      <textarea id="illustrationContent" placeholder="예화 내용을 입력하세요..."></textarea>
+      <div id="illustrationSuggestion" class="suggestion-box">💡 예화 실시간 분석 결과가 여기에 표시됩니다.</div>
+      <button class="mic-button" onclick="startRecording('illustrationContent')">🎤 음성 입력</button>
+      <button class="button" onclick="generateSermonFromIllustration()">예화를 바탕으로 설교 작성</button>
+      <button class="button" onclick="suggestHymnsFromIllustration()">🎶 찬송 추천</button>
+    </div>
+    <div class="column">
+      <h2>설교문 작성</h2>
+      <textarea id="sermonContent" placeholder="설교문을 입력하거나 AI로 생성하세요..."></textarea>
+      <div id="sermonSuggestion" class="suggestion-box">🧠 설교 실시간 구조 제안 결과가 여기에 표시됩니다.</div>
+      <button class="mic-button" onclick="startRecording('sermonContent')">🎤 음성 입력</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div id="hymnSuggestions">
+      <h3>🎵 추천 찬송가</h3>
+      <p>찬송가 추천 결과가 여기에 표시됩니다.</p>
+    </div>
+    <br />
+    <button class="button" onclick="saveToPDF()">📄 PDF 저장</button>
+    <input type="file" id="loadFile" accept=".txt" onchange="loadFromFile()" />
+    <button class="button" onclick="window.print()">🖨️ 인쇄</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const apiKey = "AIzaSyDuF64w0S6ZcoXAuhtahlUAhCgAYnOFBXo"; // ✅ API Key
+
+    async function callOpenAI(prompt, role = "설교 도우미") {
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + apiKey
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: role },
+            { role: "user", content: prompt }
+          ],
+          max_tokens: 400,
+          temperature: 0.7
+        })
+      });
+      const data = await res.json();
+      return data.choices[0].message.content;
+    }
+
+    async function generateIllustration() {
+      const topic = document.getElementById("customIllustrationTopic").value.trim();
+      const prompt = topic
+        ? `${topic}에 대한 짧고 인상적인 기독교 예화를 하나 추천해줘.`
+        : "믿음, 용서, 사랑, 인내 중 하나의 주제로 예화를 하나 추천해줘.";
+      document.getElementById("illustrationContent").value = "🧠 예화 생성 중...";
+      const result = await callOpenAI(prompt, "기독교 예화 추천 도우미");
+      document.getElementById("illustrationContent").value = result;
+    }
+
+    async function generateSermonFromIllustration() {
+      const illustration = document.getElementById("illustrationContent").value.trim();
+      if (!illustration) {
+        alert("예화를 먼저 입력하거나 생성하세요.");
+        return;
+      }
+      const prompt = `다음 예화를 바탕으로 성경적이고 실천적인 기독교 설교문을 작성해줘:\n${illustration}`;
+      document.getElementById("sermonContent").value = "🧠 설교문 생성 중...";
+      const result = await callOpenAI(prompt, "기독교 설교 작성 도우미");
+      document.getElementById("sermonContent").value = result;
+    }
+
+    async function suggestHymnsFromIllustration() {
+      const illustration = document.getElementById("illustrationContent").value.trim();
+      if (!illustration) {
+        alert("예화를 먼저 입력하거나 생성하세요.");
+        return;
+      }
+      const prompt = `다음 예화에 어울리는 찬송가 3곡을 추천해줘. 제목, 번호(있으면), 이유 포함:\n${illustration}`;
+      const result = await callOpenAI(prompt, "기독교 찬송 추천 도우미");
+      document.getElementById("hymnSuggestions").innerHTML =
+        `<h3>🎵 추천 찬송가</h3><pre>${result}</pre>`;
+    }
+
+    function saveToPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const content = `예화:\n${document.getElementById("illustrationContent").value}\n\n설교:\n${document.getElementById("sermonContent").value}`;
+      const lines = doc.splitTextToSize(content, 180);
+      doc.text(lines, 10, 10);
+      doc.save("sermon.pdf");
+    }
+
+    function loadFromFile() {
+      const file = document.getElementById("loadFile").files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        document.getElementById("sermonContent").value = e.target.result;
+      };
+      reader.readAsText(file);
+    }
+
+    function startRecording(targetId) {
+      if (!('webkitSpeechRecognition' in window)) {
+        alert('이 브라우저는 음성 인식을 지원하지 않습니다.');
+        return;
+      }
+      const recognition = new webkitSpeechRecognition();
+      recognition.lang = 'ko-KR';
+      recognition.start();
+      recognition.onresult = function(event) {
+        const text = event.results[0][0].transcript;
+        const separator = "\n― ";
+        document.getElementById(targetId).value += separator + text;
+      }
+    }
+
+    // ✅ 실시간 AI 제안 기능
+    function debounce(func, wait) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    const illustInput = document.getElementById('illustrationContent');
+    const illustSuggestion = document.getElementById('illustrationSuggestion');
+    illustInput.addEventListener('input', debounce(async () => {
+      const text = illustInput.value.trim();
+      if (text.length < 10) return;
+      illustSuggestion.innerText = "💡 예화 분석 중...";
+      const prompt = `다음 예화의 핵심 메시지를 요약하고 설교에 쓸 수 있는 성경 구절을 하나 추천해줘:\n${text}`;
+      const suggestion = await callOpenAI(prompt, "예화 실시간 피드백 도우미");
+      illustSuggestion.innerText = suggestion;
+    }, 2000));
+
+    const sermonInput = document.getElementById('sermonContent');
+    const sermonSuggestion = document.getElementById('sermonSuggestion');
+    sermonInput.addEventListener('input', debounce(async () => {
+      const text = sermonInput.value.trim();
+      if (text.length < 20) return;
+      sermonSuggestion.innerText = "🧠 설교 분석 중...";
+      const prompt = `이 설교문의 핵심을 요약하고 구조(도입-본문-적용)가 잘 구성됐는지 평가해줘:\n${text}`;
+      const suggestion = await callOpenAI(prompt, "설교 실시간 구조 도우미");
+      sermonSuggestion.innerText = suggestion;
+    }, 2500));
+  </script>
+</body>
+</html>

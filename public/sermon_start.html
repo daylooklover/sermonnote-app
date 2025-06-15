@@ -2,52 +2,65 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>설교 시작 - SermonNote</title>
+  <title>📖 설교 작성 시작 - SermonNote</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body {
-      background: linear-gradient(135deg, #232526 0%, #414345 100%);
-      height: 100vh;
-      margin: 0;
-      font-family: 'Nanum Gothic', sans-serif;
+      background: #0d0d0d;
       color: #fff;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      font-family: 'Nanum Gothic', sans-serif;
+      text-align: center;
+      padding: 60px 20px;
     }
+
     h1 {
       font-size: 2.5rem;
       margin-bottom: 40px;
-      text-shadow: 0 0 10px #ffd54f;
     }
-    button {
-      background: #ffeb3b;
-      color: #222;
+
+    .option {
+      background: #ffca28;
       border: none;
       border-radius: 14px;
-      padding: 16px 48px;
-      font-size: 1.3rem;
-      font-weight: 700;
-      margin: 10px 0;
+      padding: 16px 28px;
+      margin: 20px auto 8px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #222;
+      width: 100%;
+      max-width: 340px;
       cursor: pointer;
-      box-shadow: 0 0 30px #fdd835cc;
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      display: block;
+      box-shadow: 0 0 20px rgba(255, 204, 0, 0.4);
+      transition: 0.2s;
     }
-    button:hover {
-      background-color: #fdd835;
-      box-shadow: 0 0 45px #fdd835ee;
+
+    .option:hover {
+      background: #ffd740;
+    }
+
+    .desc {
+      font-size: 0.9rem;
+      color: #ccc;
+      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
 
-  <h1>설교 작성 시작</h1>
+  <h1>📖 설교 작성 시작</h1>
 
-  <button onclick="location.href='sermon_example.html'">퀵메모 연계 설교작성</button>
-  <button onclick="location.href='sermon_prepare.html'">설교 작성하기</button>
-  <button onclick="location.href='sermon_custom.html'">맞춤형 설교 작성</button>
-  <button onclick="location.href='expository-sermon.html'">강해식 설교 작성하기</button>
+  <button class="option" onclick="location.href='/expository-sermon.html'">🧠 강해식 설교 작성하기</button>
+  <div class="desc">성경 본문을 중심으로 해석과 적용을 단계별로 구성</div>
+
+  <button class="option" onclick="location.href='/quickmemo'">📝 퀵메모 연계 설교작성</button>
+  <div class="desc">기록해둔 메모를 바탕으로 설교문을 완성</div>
+
+  <button class="option" onclick="location.href='/case'">✍ 사례중심 설교 작성하기</button>
+  <div class="desc">자유롭게 설교를 작성할 수 있는 기본 서식</div>
+
+  <button class="option" onclick="location.href='/custom'">📄 맞춤형 설교 작성</button>
+  <div class="desc">대상/분위기/길이에 따라 설교 양식을 자동 생성</div>
 
 </body>
 </html>

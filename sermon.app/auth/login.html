@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>SermonNote - 로그인</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #232526 0%, #414345 100%);
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+      color: #333;
+      position: relative;
+    }
+    .home-container {
+      background: #fff;
+      padding: 2rem 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+      min-width: 300px;
+      max-width: 350px;
+      margin: 80px auto 0 auto;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 1rem;
+    }
+    input[type="email"], input[type="password"] {
+      width: 90%;
+      padding: 0.7rem;
+      margin: 0.7rem 0;
+      border: 1px solid #bbb;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    button, .main-btn {
+      width: 100%;
+      padding: 0.8rem;
+      margin-top: 1rem;
+      background: #3a7bd5;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    button:disabled, .main-btn:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+    button:hover:enabled, .main-btn:hover:enabled {
+      background: #28527a;
+    }
+    #message {
+      margin-top: 1rem;
+      font-size: 0.96rem;
+      min-height: 1.5em;
+      color: red;
+    }
+    .back-link, .signup-link {
+      display: block;
+      margin-top: 1.4rem;
+      color: #3a7bd5;
+      font-size: 0.97rem;
+      text-decoration: none;
+      transition: color 0.2s;
+      cursor: pointer;
+    }
+    .back-link:hover, .signup-link:hover {
+      color: #28527a;
+      text-decoration: underline;
+    }
+    #branding {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      max-width: 320px;
+      padding: 14px 20px;
+      background-color: rgba(0, 0, 0, 0.5);
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(255, 215, 79, 0.85);
+      color: #FFE082;
+      font-family: 'Nanum Myeongjo', serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      line-height: 1.5;
+      letter-spacing: 0.07em;
+      text-shadow:
+        0 0 6px rgba(255, 224, 130, 0.9),
+        0 0 10px rgba(255, 196, 0, 0.7);
+      user-select: none;
+      z-index: 10000;
+      transition: color 0.3s ease;
+    }
+    #branding strong {
+      font-weight: 800;
+      color: #FFF8E1;
+      text-shadow: 0 0 8px #fffacd;
+    }
+    #branding:hover {
+      color: #FFD740;
+      text-shadow:
+        0 0 10px #fff176,
+        0 0 18px #ffc400;
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDuF64w0S6ZcoXAuhtahlUAhCgAYnOFBXo",
+      authDomain: "sermonnote-live.firebaseapp.com",
+      projectId: "sermonnote-live",
+      storageBucket: "sermonnote-live.firebasestorage.app",
+      messagingSenderId: "520754190508",
+      appId: "1:520754190508:web:cc4271b1e96e0bed3ee709",
+      measurementId: "G-CWDVF5K3HX"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+  </script>
+
+</head>
+<body>
+
+  <div id="branding">
+    AI와 함께<br />
+    하나님의 말씀을<br />
+    더 가까이, 더 깊게 전하는<br />
+    사역 플랫폼 - <strong>말씀노트</strong>
+  </div>
+
+  <div class="home-container">
+    <h1>로그인</h1>
+    <input id="email" type="email" placeholder="이메일 주소" autocomplete="username" />
+    <input id="password" type="password" placeholder="비밀번호" autocomplete="current-password" />
+    <button id="loginBtn" disabled>로그인</button>
+    <a id="goSignup" class="back-link">회원가입</a>
+    <a id="goReset" class="back-link" href="reset_password.html">비밀번호 재설정</a>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const loginBtn = document.getElementById('loginBtn');
+    const message = document.getElementById('message');
+    const goSignup = document.getElementById('goSignup');
+
+    function validateLoginInputs() {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      loginBtn.disabled = !(email && password);
+      message.textContent = '';
+    }
+
+    emailInput.addEventListener('input', validateLoginInputs);
+    passwordInput.addEventListener('input', validateLoginInputs);
+
+    loginBtn.addEventListener('click', () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (!email || !password) {
+        message.textContent = '이메일과 비밀번호를 모두 입력하세요.';
+        return;
+      }
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          message.style.color = 'green';
+          message.textContent = '로그인 성공! 환영합니다.';
+          setTimeout(() => {
+            window.location.href = '/sermon_start.html';
+          }, 1000);
+        })
+        .catch((error) => {
+          message.style.color = 'red';
+          message.textContent = error.message;
+        });
+    });
+
+    goSignup.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.href = 'signup.html';
+    });
+
+    validateLoginInputs();
+  </script>
+
+</body>
+</html>

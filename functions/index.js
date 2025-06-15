@@ -1,48 +1,42 @@
-const functions = require("firebase-functions/v2");
-const express = require("express");
-const cors = require("cors");
-const admin = require("firebase-admin");
-const OpenAI = require("openai");
-
-admin.initializeApp();
-
-const app = express();
-app.use(cors({ origin: true }));
-app.use(express.json());
+const functions = require("firebase-functions");
+const { OpenAI } = require("openai");
+const cors = require("cors")({ origin: true });
 
 const openai = new OpenAI({
-  apiKey: functions.config().openai.key,
+  apiKey: "AIzaSyDuF64w0S6ZcoXAuhtahlUAhCgAYnOFBXo"
 });
 
-// ✅ OPTIONS 프리플라이트 요청 처리
-app.options("/", (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set("Access-Control-Allow-Methods", "POST");
-  res.set("Access-Control-Allow-Headers", "Content-Type");
-  res.status(204).send("");
+exports.api = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    const { prompt, role } = req.body;
+
+    if (!prompt || !role) {
+      return res.status(400).json({ error: "❗ prompt와 role은 반드시 포함되어야 합니다." });
+    }
+
+    try {
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4",
+        messages: [
+          { role: "system", content: `${role}로서 대답해줘.` },
+          { role: "user", content: prompt }
+        ]
+      });
+
+      // ✅ 응답 전체 구조를 확인하기 위한 디버깅 로그
+      console.log("🔥 OpenAI 응답 전체:", JSON.stringify(completion, null, 2));
+
+      const result = completion.choices?.[0]?.message?.content;
+
+      if (!result) {
+        console.error("⚠️ GPT 응답이 비어 있음 또는 잘못된 형식입니다.");
+        return res.status(500).json({ error: "GPT 응답에서 결과를 찾을 수 없습니다." });
+      }
+
+      res.json({ result });
+    } catch (err) {
+      console.error("🔥 OpenAI 호출 실패:", err);
+      res.status(500).json({ error: "❌ OpenAI 호출 실패: " + err.message });
+    }
+  });
 });
-
-app.post("/", async (req, res) => {
-  const { prompt } = req.body;
-  if (!prompt) return res.status(400).send("프롬프트가 필요합니다.");
-
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { role: "system", content: "너는 친절한 설교 작성 도우미야." },
-        { role: "user", content: prompt },
-      ],
-      max_tokens: 800,
-      temperature: 0.7,
-    });
-
-    const result = completion.choices[0].message.content.trim();
-    res.json({ result });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("AI 생성 실패");
-  }
-});
-
-exports.generateExamples = functions.https.onRequest(app);

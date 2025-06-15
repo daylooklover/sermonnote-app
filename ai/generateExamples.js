@@ -1,39 +1,46 @@
-const express = require('express');
-const OpenAI = require('openai');
+import OpenAI from 'openai';
 
-const app = express();
-app.use(express.json());
-
-// ✅ CORS 허용
-app.use((req, res, next) => {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  next();
-});
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-// ✅ OpenAI v4 방식 초기화
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-app.post('/api/generateExamples', async (req, res) => {
-  const prompt = req.body.prompt;
-  if (!prompt) return res.status(400).json({ error: "No prompt provided" });
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
   try {
-    const chat = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: "당신은 설교 작성을 도와주는 AI입니다." },
-        { role: "user", content: prompt }
-      ],
-      max_tokens: 500
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
     });
 
-    res.json({ result: chat.choices[0].message.content.trim() });
-  } catch (err) {
-    console.error("❌ OpenAI error:", err.message);
-    res.status(500).json({ error: "AI 오류 발생", detail: err.message });
-  }
-});
+    const { prompt } = req.body;
 
-module.exports = app;
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required.' });
+    }
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    res.status(200).json({ result: completion.choices[0].message.content });
+
+  } catch (error) {
+    console.error('OpenAI API call failed:', error);
+
+    if (error.response) {
+      console.error('OpenAI API Error Response:', error.response);
+      return res.status(error.response.status).json({
+        error: 'OpenAI API Error',
+        details: error.response.data,
+      });
+    } else {
+      return res.status(500).json({
+        error: 'Internal Server Error',
+        details: error.message,
+      });
+    }
+  }
+}

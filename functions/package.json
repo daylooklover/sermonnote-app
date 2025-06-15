@@ -1,13 +1,36 @@
-{
+ {
   "name": "functions",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "firebase-functions": "^6.0.1",
-    "openai": "^5.3.0"
-  },
+  "type": "module",
+  "main": "index.js",
   "engines": {
     "node": "18"
   },
-  "main": "index.js",
-  "private": true
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "axios": "^1.10.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "firebase-admin": "^11.10.1",
+    "firebase-functions": "^4.9.0",
+    "openai": "^4.104.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0"
+  },
+  "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daylooklover/sermonnote-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/daylooklover/sermonnote-app/issues"
+  },
+  "homepage": "https://github.com/daylooklover/sermonnote-app#readme",
+  "description": ""
 }
