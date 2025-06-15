@@ -1,51 +1,37 @@
-const functions = require("firebase-functions/v2");
-const express = require("express");
-const cors = require("cors");
-const admin = require("firebase-admin");
-const OpenAI = require("openai");
+const functions = require('firebase-functions');
+const { Configuration, OpenAIApi } = require('openai');
 
-admin.initializeApp();
-
-const app = express();
-app.use(cors({ origin: true }));
-app.use(express.json());
-
-// ✅ OPTIONS 프리플라이트 요청 우선 처리
-app.options("/", (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set("Access-Control-Allow-Methods", "POST");
-  res.set("Access-Control-Allow-Headers", "Content-Type");
-  res.status(204).send("");
-});
-
-const openai = new OpenAI({
+// Firebase 환경설정에서 openai.key 설정 필요
+const configuration = new Configuration({
   apiKey: functions.config().openai.key,
 });
 
-// ✅ POST 요청 핸들러 (루트 경로)
-app.post("/", async (req, res) => {
-  const { prompt } = req.body;
-  if (!prompt) return res.status(400).send("프롬프트가 필요합니다.");
+const openai = new OpenAIApi(configuration);
 
+// HTTP 요청으로 실행되는 Firebase 함수
+exports.generateExamples = functions.https.onRequest(async (req, res) => {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const prompt = req.body.prompt;
+
+    if (!prompt) {
+      res.status(400).send("요청에 prompt가 없습니다.");
+      return;
+    }
+
+    const completion = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo", // 또는 "gpt-4"
       messages: [
-        { role: "system", content: "너는 친절한 설교 작성 도우미야." },
-        { role: "user", content: prompt },
+        { role: "system", content: "당신은 목회자의 설교 작성을 도와주는 조력자입니다." },
+        { role: "user", content: prompt }
       ],
-      max_tokens: 800,
+      max_tokens: 600,
       temperature: 0.7,
     });
 
-    const result = completion.choices[0].message.content.trim();
-    res.set("Access-Control-Allow-Origin", "*"); // 추가 보장
-    res.json({ result });
+    const result = completion.data.choices[0].message.content.trim();
+    res.status(200).json({ result });
   } catch (error) {
-    console.error("OpenAI 오류:", error);
-    res.status(500).send("AI 생성 실패");
+    console.error("🔥 AI 호출 오류:", error);
+    res.status(500).send("AI 호출 중 오류가 발생했습니다.");
   }
 });
-
-// ✅ Firebase Function으로 export
-exports.generateExamples = functions.https.onRequest(app);

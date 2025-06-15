@@ -1,19 +1,22 @@
 {
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs18",
+    "codebase": "default",
+    "ignore": ["node_modules"],
+    "endpoints": {
+      "generateExamples": {
+        "platform": "gcfv1",
+        "region": "us-central1"
+      }
+    }
+  },
   "hosting": {
     "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "/generateExamples",
-        "function": "generateExamples"
-      }
     ]
-  },
-  "functions": {
-    "source": "functions"
   }
 }

@@ -1,283 +1,188 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<title>설교 작성 화면 - AI 추천 + 음성인식 + OpenAI 연동</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<style>
-  /* 기존 스타일 유지 */
-  @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap');
-  * { box-sizing: border-box; }
-  body {
-    margin:0; padding:0;
-    font-family:'Nanum Gothic', sans-serif;
-    background: linear-gradient(135deg, #1c1c2b, #28313b);
-    color:#f0e6d2;
-    height: 100vh;
-    display: flex;
-  }
-  .left-panel {
-    width: 320px;
-    background: rgba(30,30,42,0.85);
-    padding: 20px;
-    border-radius: 24px;
-    box-shadow: 0 0 30px #ffc10744 inset;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    overflow-y: auto;
-  }
-  .left-panel label {
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: #ffe57f;
-    text-shadow: 0 0 6px #ffd54f;
-  }
-  .left-panel input[type="text"], .left-panel select {
-    width: 100%;
-    padding: 10px;
-    border-radius: 12px;
-    border: none;
-    font-size: 1rem;
-    outline: none;
-    transition: box-shadow 0.3s ease;
-  }
-  .left-panel input[type="text"]:focus, .left-panel select:focus {
-    box-shadow: 0 0 10px #ffd54f;
-  }
-  .quickmemo-list {
-    background: #222;
-    border-radius: 12px;
-    padding: 10px;
-    max-height: 140px;
-    overflow-y: auto;
-    color: #eee;
-    user-select: none;
-  }
-  .quickmemo-item {
-    padding: 8px;
-    border-radius: 8px;
-    margin-bottom: 6px;
-    background: #333;
-    cursor: pointer;
-    transition: background 0.2s ease;
-  }
-  .quickmemo-item:hover {
-    background: #444;
-  }
-  .quickmemo-item.selected {
-    background-color: #ffeb3b;
-    color: #222;
-    font-weight: 700;
-    border-left: 6px solid #fbc02d;
-  }
-  .button-group {
-    display: flex;
-    gap: 8px;
-    margin-top: 6px;
-    flex-wrap: wrap;
-  }
-  button {
-    cursor: pointer;
-    user-select: none;
-    border: none;
-    border-radius: 10px;
-    padding: 6px 12px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    transition: background-color 0.3s ease;
-    background: linear-gradient(90deg, #ffeb3b, #fdd835);
-    color: #222;
-    box-shadow: 0 4px 10px rgba(253,216,53,0.7);
-  }
-  button:hover {
-    background: linear-gradient(90deg, #fdd835, #ffeb3b);
-    box-shadow: 0 6px 15px rgba(253,216,53,0.9);
-  }
-  button:active {
-    transform: scale(0.95);
-  }
-  .right-panel {
-    flex: 1;
-    background: rgba(30,30,42,0.85);
-    border-radius: 24px;
-    padding: 30px;
-    box-shadow: 0 0 50px #ffc10744 inset;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-  }
-  .right-panel label {
-    font-weight: 700;
-    font-size: 1.1rem;
-    margin-bottom: 10px;
-    color: #ffe57f;
-    text-shadow: 0 0 8px #ffd54f;
-  }
-  .right-panel textarea {
-    flex: 1;
-    padding: 20px;
-    font-size: 1.1rem;
-    border-radius: 16px;
-    border: none;
-    resize: none;
-    background: #1e1e2a;
-    color: #eee;
-    outline: none;
-    box-shadow: inset 0 0 15px #ffc10744;
-    transition: box-shadow 0.3s ease;
-  }
-  .right-panel textarea:focus {
-    box-shadow: inset 0 0 25px #ffd54faa;
-  }
-  #micBtn {
-    position: absolute;
-    top: 30px;
-    right: 30px;
-    background-color: #ffeb3b;
-    border: none;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(251, 192, 45, 0.8);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    user-select: none;
-    z-index: 10;
-    font-size: 1.8rem;
-  }
-  #micBtn.active {
-    background-color: #f44336;
-    box-shadow: 0 8px 30px rgba(244, 67, 54, 0.9);
-    animation: pulse 1.5s infinite;
-    color: white;
-  }
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
-    70% { box-shadow: 0 0 0 12px rgba(244, 67, 54, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
-  }
-  #aiSuggestion {
-    margin-top: 20px;
-    text-align: left;
-    background:#222; 
-    padding: 12px; 
-    border-radius: 10px; 
-    min-height: 120px; 
-    color:#eee; 
-    overflow-y: auto; 
-    max-height: 200px;
-    font-size: 0.95rem;
-    user-select: text;
-    white-space: pre-wrap;
-  }
-  #aiSuggestion p {
-    margin-bottom: 8px;
-    cursor: pointer;
-  }
-  #aiSuggestion p:hover {
-    background: #444;
-    border-radius: 6px;
-  }
-  .bottom-btns {
-    position: fixed;
-    bottom: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 14px;
-    background: rgba(30,30,42,0.9);
-    padding: 12px 20px;
-    border-radius: 30px;
-    box-shadow: 0 0 25px #ffc107cc;
-    z-index: 1000;
-  }
-  .bottom-btns button {
-    background: linear-gradient(90deg, #ffeb3b, #fdd835);
-    color: #222;
-    border: none;
-    border-radius: 14px;
-    padding: 12px 20px;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(253,216,53,0.7);
-    transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
-    user-select: none;
-  }
-  .bottom-btns button:hover {
-    background: linear-gradient(90deg, #fdd835, #ffeb3b);
-    box-shadow: 0 10px 30px rgba(253,216,53,0.85);
-    transform: scale(1.05);
-  }
-  .bottom-btns button:active {
-    transform: scale(0.98);
-    box-shadow: 0 4px 15px rgba(253,216,53,0.5);
-  }
-  @media (max-width: 700px) {
-    .bottom-btns {
-      flex-direction: column;
-      padding: 10px;
-      gap: 10px;
+  <meta charset="UTF-8" />
+  <title>설교 작성 화면 - 넓은 노트 배경</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic&display=swap');
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Nanum Gothic', sans-serif;
+      background: url('https://i.imgur.com/mVvRM0K.png');
+      background-size: cover;
+      background-attachment: fixed;
+      background-position: center;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
     }
-    .bottom-btns button {
+
+    .left-panel {
+      width: 300px;
+      background: rgba(255, 255, 255, 0.85);
+      padding: 20px;
+      border-right: 2px solid #ddd;
+      overflow-y: auto;
+    }
+
+    .left-panel label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .left-panel input[type="text"] {
       width: 100%;
-      font-size: 1.1rem;
+      padding: 8px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
     }
-  }
-</style>
+
+    .quickmemo-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+
+    .quickmemo-item {
+      padding: 6px;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      background: #eee;
+      cursor: pointer;
+    }
+
+    .quickmemo-item.selected {
+      background: #ffeb3b;
+      color: #222;
+      font-weight: bold;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .button-group button {
+      flex: 1 0 45%;
+      padding: 6px;
+      border: none;
+      border-radius: 8px;
+      background-color: #fdd835;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .right-panel {
+      flex: 1;
+      padding: 40px;
+      background: rgba(255, 255, 255, 0.92);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      max-width: 1200px;
+      margin: 30px auto;
+      border-radius: 16px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.1);
+    }
+
+    .right-panel label {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .right-panel textarea {
+      flex: 1;
+      padding: 20px;
+      font-size: 1.1rem;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      resize: vertical;
+      height: 400px;
+      background: #fff;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    #micBtn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: none;
+      background: #ffeb3b;
+      font-size: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    #micBtn.active {
+      background: #f44336;
+      color: white;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.6); }
+      70% { box-shadow: 0 0 0 12px rgba(244, 67, 54, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+    }
+
+    #aiSuggestion {
+      margin-top: 20px;
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      color: #333;
+      min-height: 100px;
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
 <body>
 
-<div style="display:flex; height:100vh;">
-  <div class="left-panel" aria-label="퀵메모 및 검색">
-    <div>
-      <label for="quickmemoSearch">퀵메모 찾기</label>
-      <input type="text" id="quickmemoSearch" placeholder="퀵메모 제목 검색..." />
-      <div class="quickmemo-list" id="quickmemoList"></div>
-      <div class="button-group">
-        <button id="editQuickmemoBtn">수정하기</button>
-        <button id="saveQuickmemoBtn">저장하기</button>
-        <button id="addQuickmemoBtn">추가하기</button>
-        <button id="deleteQuickmemoBtn">삭제하기</button>
-      </div>
-    </div>
-  </div>
-  <div class="right-panel" aria-label="설교 작성">
-    <label for="sermonContent">설교 내용 작성란</label>
-    <textarea id="sermonContent" rows="18" placeholder="설교 내용을 작성하세요..."></textarea>
-    <button id="micBtn" aria-label="음성 인식 시작/중지" title="음성으로 설교 내용 입력">🎤</button>
-    <div id="aiSuggestion">여기에 AI 추천 사례가 표시됩니다.</div>
+<div class="left-panel">
+  <label for="quickmemoSearch">퀵메모 찾기</label>
+  <input type="text" id="quickmemoSearch" placeholder="제목 검색..." />
+  <div class="quickmemo-list" id="quickmemoList"></div>
+  <div class="button-group">
+    <button id="editQuickmemoBtn">수정</button>
+    <button id="saveQuickmemoBtn">저장</button>
+    <button id="addQuickmemoBtn">추가</button>
+    <button id="deleteQuickmemoBtn">삭제</button>
   </div>
 </div>
 
-<div class="bottom-btns" aria-label="설교 작업 버튼">
-  <button id="btnEditBottom">수정하기</button>
-  <button id="btnSaveBottom">저장하기</button>
-  <button id="btnPrintBottom">인쇄</button>
-  <button id="btnSendTabletBottom">테블릿/피시로 보내기</button>
-  <button id="btnCreateBulletinBottom">주보 만들기</button>
+<div class="right-panel">
+  <label for="sermonContent">설교 내용</label>
+  <textarea id="sermonContent" placeholder="여기에 설교를 작성하세요..."></textarea>
+  <button id="micBtn">🎤</button>
+  <div id="aiSuggestion">AI 추천이 여기에 표시됩니다.</div>
 </div>
 
 <script>
   const sermonContent = document.getElementById('sermonContent');
-  const aiSuggestion = document.getElementById('aiSuggestion');
   const micBtn = document.getElementById('micBtn');
+  const aiSuggestion = document.getElementById('aiSuggestion');
   const quickmemoList = document.getElementById('quickmemoList');
   const quickmemoSearch = document.getElementById('quickmemoSearch');
-  const editQuickmemoBtn = document.getElementById('editQuickmemoBtn');
-  const saveQuickmemoBtn = document.getElementById('saveQuickmemoBtn');
-  const addQuickmemoBtn = document.getElementById('addQuickmemoBtn');
-  const deleteQuickmemoBtn = document.getElementById('deleteQuickmemoBtn');
+  const editBtn = document.getElementById('editQuickmemoBtn');
+  const saveBtn = document.getElementById('saveQuickmemoBtn');
+  const addBtn = document.getElementById('addQuickmemoBtn');
+  const deleteBtn = document.getElementById('deleteQuickmemoBtn');
 
-  // localStorage에서 퀵메모 불러오기
   let quickmemos = JSON.parse(localStorage.getItem('quickmemos') || '[]');
   let selectedQuickmemoIndex = null;
 
-  // 퀵메모 리스트 렌더링
   function renderQuickmemoList() {
     quickmemoList.innerHTML = "";
     quickmemos.forEach((item, idx) => {
@@ -285,16 +190,13 @@
       div.textContent = item;
       div.className = "quickmemo-item";
       div.dataset.idx = idx;
-      if(idx === selectedQuickmemoIndex) div.style.backgroundColor = "#555";
+      if (idx === selectedQuickmemoIndex) div.classList.add("selected");
       quickmemoList.appendChild(div);
     });
   }
 
-  renderQuickmemoList();
-
-  // 퀵메모 선택 이벤트
   quickmemoList.addEventListener('click', e => {
-    if(e.target && e.target.dataset.idx !== undefined) {
+    if (e.target && e.target.dataset.idx !== undefined) {
       selectedQuickmemoIndex = Number(e.target.dataset.idx);
       renderQuickmemoList();
       sermonContent.value = quickmemos[selectedQuickmemoIndex];
@@ -302,100 +204,67 @@
     }
   });
 
-  // 퀵메모 검색
   quickmemoSearch.addEventListener('input', () => {
     const keyword = quickmemoSearch.value.trim();
-    if(keyword.length > 0) {
-      const filtered = quickmemos.filter(qm => qm.includes(keyword));
+    if (keyword.length > 0) {
+      const filtered = quickmemos.filter(q => q.includes(keyword));
       quickmemoList.innerHTML = "";
-      filtered.forEach((item, idx) => {
+      filtered.forEach((item) => {
         const div = document.createElement("div");
         div.textContent = item;
         div.className = "quickmemo-item";
         div.dataset.idx = quickmemos.indexOf(item);
         quickmemoList.appendChild(div);
       });
-      selectedQuickmemoIndex = null;
-      sermonContent.value = "";
-      updateAISuggestion("");
     } else {
-      selectedQuickmemoIndex = null;
-      sermonContent.value = "";
       renderQuickmemoList();
-      updateAISuggestion("");
     }
   });
 
-  // 퀵메모 수정 버튼
-  editQuickmemoBtn.onclick = () => {
-    if(selectedQuickmemoIndex === null) {
-      alert("수정할 퀵메모를 선택해 주세요.");
-      return;
-    }
+  editBtn.onclick = () => {
+    if (selectedQuickmemoIndex === null) return alert("수정할 메모를 선택하세요");
     sermonContent.value = quickmemos[selectedQuickmemoIndex];
-    updateAISuggestion(sermonContent.value);
   };
 
-  // 퀵메모 저장 버튼
-  saveQuickmemoBtn.onclick = () => {
-    if(selectedQuickmemoIndex === null) {
-      alert("저장할 퀵메모를 선택해 주세요.");
-      return;
-    }
-    if(sermonContent.value.trim() === "") {
-      alert("내용이 비어 있습니다.");
-      return;
-    }
-    quickmemos[selectedQuickmemoIndex] = sermonContent.value.trim();
+  saveBtn.onclick = () => {
+    if (selectedQuickmemoIndex === null) return alert("선택 후 저장하세요");
+    quickmemos[selectedQuickmemoIndex] = sermonContent.value;
     localStorage.setItem('quickmemos', JSON.stringify(quickmemos));
     renderQuickmemoList();
-    alert("퀵메모가 저장되었습니다.");
   };
 
-  // 퀵메모 추가 버튼
-  addQuickmemoBtn.onclick = () => {
-    const newMemo = prompt("새 퀵메모 내용을 입력하세요:");
-    if (newMemo && newMemo.trim()) {
-      quickmemos.push(newMemo.trim());
+  addBtn.onclick = () => {
+    const memo = prompt("새 메모 입력:");
+    if (memo && memo.trim()) {
+      quickmemos.push(memo.trim());
       localStorage.setItem('quickmemos', JSON.stringify(quickmemos));
       renderQuickmemoList();
-      alert("퀵메모가 추가되었습니다.");
     }
   };
 
-  // 퀵메모 삭제 버튼
-  deleteQuickmemoBtn.onclick = () => {
-    if (selectedQuickmemoIndex === null) {
-      alert("삭제할 퀵메모를 선택해주세요.");
-      return;
-    }
-    if (confirm("선택한 퀵메모를 삭제하시겠습니까?")) {
-      quickmemos.splice(selectedQuickmemoIndex, 1);
-      selectedQuickmemoIndex = null;
-      localStorage.setItem('quickmemos', JSON.stringify(quickmemos));
-      renderQuickmemoList();
-      sermonContent.value = "";
-      updateAISuggestion("");
-      alert("퀵메모가 삭제되었습니다.");
-    }
+  deleteBtn.onclick = () => {
+    if (selectedQuickmemoIndex === null) return alert("삭제할 메모를 선택하세요");
+    quickmemos.splice(selectedQuickmemoIndex, 1);
+    selectedQuickmemoIndex = null;
+    localStorage.setItem('quickmemos', JSON.stringify(quickmemos));
+    renderQuickmemoList();
+    sermonContent.value = "";
   };
 
-  // 음성 인식 기능
+  // 음성 인식
   let recognition;
   let recognizing = false;
-  micBtn.addEventListener('click', () => {
-    if(!('webkitSpeechRecognition' in window)) {
-      alert('음성 인식을 지원하지 않는 브라우저입니다. 크롬에서 시도해 주세요.');
+  micBtn.onclick = () => {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert('크롬 브라우저에서 시도해 주세요.');
       return;
     }
-    if(recognizing) {
+    if (recognizing) {
       recognition.stop();
       return;
     }
     recognition = new webkitSpeechRecognition();
     recognition.lang = 'ko-KR';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
     recognition.onstart = () => {
       recognizing = true;
       micBtn.classList.add('active');
@@ -404,57 +273,48 @@
       recognizing = false;
       micBtn.classList.remove('active');
     };
-    recognition.onerror = (event) => {
-      alert('음성 인식 오류: ' + event.error);
+    recognition.onerror = e => {
       recognizing = false;
       micBtn.classList.remove('active');
+      alert('오류: ' + e.error);
     };
-    recognition.onresult = (event) => {
-      sermonContent.value += event.results[0][0].transcript;
+    recognition.onresult = e => {
+      sermonContent.value += e.results[0][0].transcript;
       updateAISuggestion(sermonContent.value);
     };
     recognition.start();
-  });
+  };
 
-  // AI 추천 (OpenAI 연동 예시 - 배포된 Firebase Functions 주소로 변경됨)
   async function fetchAISummary(text) {
-    console.log('fetchAISummary 호출:', text);
     if (!text) {
       aiSuggestion.textContent = "내용을 입력해 주세요.";
       return;
     }
-    aiSuggestion.textContent = "AI 추천 생성 중... 잠시만 기다려 주세요.";
+    aiSuggestion.textContent = "AI 추천 중...";
     try {
       const res = await fetch('https://us-central1-sermonnote-live.cloudfunctions.net/generateExamples', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: text }),
       });
       const data = await res.json();
-      if (data.result) {
-        aiSuggestion.textContent = data.result;
-      } else {
-        aiSuggestion.textContent = "AI 추천이 없습니다.";
-      }
-    } catch (error) {
-      aiSuggestion.textContent = "AI 호출 중 오류가 발생했습니다.";
-      console.error(error);
+      aiSuggestion.textContent = data.result || "추천 결과 없음.";
+    } catch (err) {
+      aiSuggestion.textContent = "AI 오류 발생.";
     }
   }
 
   let aiTimeout;
   function updateAISuggestion(text) {
-    console.log('updateAISuggestion 호출:', text);
     if (aiTimeout) clearTimeout(aiTimeout);
     aiSuggestion.textContent = "AI 추천 대기 중...";
     aiTimeout = setTimeout(() => {
       fetchAISummary(text.trim());
-    }, 1500);
+    }, 1200);
   }
 
   sermonContent.addEventListener('input', () => updateAISuggestion(sermonContent.value));
-
-  updateAISuggestion("");
+  renderQuickmemoList();
 </script>
 
 </body>
