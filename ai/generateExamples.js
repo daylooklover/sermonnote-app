@@ -4,13 +4,18 @@ const OpenAI = require('openai');
 const app = express();
 app.use(express.json());
 
-// ✅ CORS 허용
+// ✅ CORS + Preflight 처리
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end(); // Preflight 응답
+  }
   next();
 });
 
-// ✅ OpenAI v4 방식 초기화
+// ✅ OpenAI v4 초기화
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
