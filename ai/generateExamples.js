@@ -12,7 +12,7 @@ app.use((req, res, next) => {
 
 // ✅ OpenAI v4 방식 초기화
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 app.post('/api/generateExamples', async (req, res) => {
