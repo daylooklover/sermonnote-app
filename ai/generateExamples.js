@@ -4,13 +4,13 @@ const OpenAI = require('openai');
 const app = express();
 app.use(express.json());
 
-// CORS 허용
+// ✅ CORS 허용
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   next();
 });
 
-// OpenAI 초기화 (v4 방식)
+// ✅ OpenAI v4 방식 초기화
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
